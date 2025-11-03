@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 
-const PREDICTIONS_URL = 'https://drive.google.com/uc?export=download&id=YOUR_FILE_ID';
+const PREDICTIONS_URL = 'https://drive.google.com/uc?export=download&id=11kZvQakEce_OW3m2QiapQksjF1m6aEC4';
 
 interface Prediction {
   topic: string;
@@ -77,11 +77,8 @@ CTA (30–35s): Try it and tag #VoiceClonePodcast.`;
     setVideoUrl(null);
 
     try {
-      // dynamic import at runtime to avoid top-level TS export issues
-      const ffmpegModule = await import('@ffmpeg/ffmpeg');
-      const { createFFmpeg } = (ffmpegModule as any) || {};
-      const ffmpeg = createFFmpeg ? createFFmpeg({ log: false }) : null;
-      if (!ffmpeg) throw new Error('FFmpeg module not available. Confirm @ffmpeg/ffmpeg is installed.');
+      const { FFmpeg } = await import('@ffmpeg/ffmpeg');
+      const ffmpeg = new FFmpeg();
       await ffmpeg.load();
 
       const script = generateShortsScript(topic);
@@ -105,29 +102,28 @@ CTA (30–35s): Try it and tag #VoiceClonePodcast.`;
           canvas.toBlob((b) => resolve(b!), 'image/png');
         });
         const arrayBuffer = await blob.arrayBuffer();
-        ffmpeg.FS('writeFile', `frame${i}.png`, new Uint8Array(arrayBuffer));
+        await ffmpeg.writeFile(`frame${i}.png`, new Uint8Array(arrayBuffer));
       }
 
       let concat = '';
       for (let i = 0; i < lines.length; i++) {
         concat += `file 'frame${i}.png'\nduration 5\n`;
       }
-      concat += `file 'frame${lines.length - 1}.png'`;
-      ffmpeg.FS('writeFile', 'concat.txt', concat);
+      concat += `file 'frame${lines.length - 1}.png'\n`;
+      await ffmpeg.writeFile('concat.txt', new TextEncoder().encode(concat));
 
-      await ffmpeg.run(
+      await ffmpeg.exec([
         '-f', 'concat',
         '-safe', '0',
         '-i', 'concat.txt',
-        '-c:v', 'libx264',
+        '-vsync', 'vfr',
         '-pix_fmt', 'yuv420p',
-        '-r', '30',
-        '-t', '20',
+        '-c:v', 'libx264',
         'output.mp4'
-      );
+      ]);
 
-      const data = ffmpeg.FS('readFile', 'output.mp4');
-      const videoBlob = new Blob([data.buffer], { type: 'video/mp4' });
+      const data = await ffmpeg.readFile('output.mp4');
+      const videoBlob = new Blob([new Uint8Array(data as Uint8Array)], { type: 'video/mp4' });
       setVideoUrl(URL.createObjectURL(videoBlob));
     } catch (e) {
       console.error('Video generation failed:', e);
