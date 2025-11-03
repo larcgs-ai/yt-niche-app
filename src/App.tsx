@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 
-const PREDICTIONS_URL = 'https://drive.google.com/uc?export=download&id=11kZvQakEce_OW3m2QiapQksjF1m6aEC4';
+const PREDICTIONS_URL = '/predictions.json';
 
 interface Prediction {
   topic: string;
@@ -77,58 +77,96 @@ CTA (30–35s): Try it and tag #VoiceClonePodcast.`;
     setVideoUrl(null);
 
     try {
-      const { FFmpeg } = await import('@ffmpeg/ffmpeg');
-      const ffmpeg = new FFmpeg();
-      await ffmpeg.load();
-
       const script = generateShortsScript(topic);
       const lines = script.split('\n').map(l => l.trim()).filter(Boolean);
-
+      
+      const canvas = document.createElement('canvas');
+      canvas.width = 1080;
+      canvas.height = 1920;
+      const ctx = canvas.getContext('2d')!;
+      
+      const videoStream = canvas.captureStream(30);
+      const mediaRecorder = new MediaRecorder(videoStream, {
+        mimeType: 'video/webm;codecs=vp9',
+        videoBitsPerSecond: 2500000
+      });
+      
+      const chunks: Blob[] = [];
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) chunks.push(e.data);
+      };
+      
+      mediaRecorder.onstop = () => {
+        const videoBlob = new Blob(chunks, { type: 'video/webm' });
+        setVideoUrl(URL.createObjectURL(videoBlob));
+        setIsGenerating(false);
+      };
+      
+      mediaRecorder.start();
+      
+      const frameDuration = 5000;
+      
       for (let i = 0; i < lines.length; i++) {
-        const canvas = document.createElement('canvas');
-        canvas.width = 1080;
-        canvas.height = 1920;
-        const ctx = canvas.getContext('2d')!;
-        ctx.fillStyle = '#0f0f0f';
+        const startTime = Date.now();
+        
+        const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        gradient.addColorStop(0, '#1a0033');
+        gradient.addColorStop(0.5, '#0a0a0a');
+        gradient.addColorStop(1, '#001a33');
+        ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+        for (let j = 0; j < 20; j++) {
+          ctx.beginPath();
+          ctx.arc(Math.random() * canvas.width, Math.random() * canvas.height, Math.random() * 3, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        
+        ctx.shadowColor = 'rgba(33, 150, 243, 0.5)';
+        ctx.shadowBlur = 20;
         ctx.font = 'bold 70px Arial';
         ctx.fillStyle = 'white';
         ctx.textAlign = 'center';
-        ctx.fillText(lines[i], canvas.width / 2, canvas.height / 2);
-        ctx.font = '50px Arial';
+        
+        const words = lines[i].split(' ');
+        const maxWidth = canvas.width - 100;
+        let currentLine = '';
+        let yPos = canvas.height / 2 - 100;
+        
+        for (const word of words) {
+          const testLine = currentLine + word + ' ';
+          const metrics = ctx.measureText(testLine);
+          if (metrics.width > maxWidth && currentLine !== '') {
+            ctx.fillText(currentLine, canvas.width / 2, yPos);
+            currentLine = word + ' ';
+            yPos += 80;
+          } else {
+            currentLine = testLine;
+          }
+        }
+        ctx.fillText(currentLine, canvas.width / 2, yPos);
+        
+        ctx.shadowBlur = 30;
+        ctx.shadowColor = 'rgba(76, 175, 80, 0.6)';
+        ctx.font = 'bold 55px Arial';
+        ctx.fillStyle = '#4CAF50';
         ctx.fillText(`${topic}`, canvas.width / 2, canvas.height - 200);
-
-        const blob = await new Promise<Blob>((resolve) => {
-          canvas.toBlob((b) => resolve(b!), 'image/png');
-        });
-        const arrayBuffer = await blob.arrayBuffer();
-        await ffmpeg.writeFile(`frame${i}.png`, new Uint8Array(arrayBuffer));
+        
+        ctx.shadowBlur = 0;
+        ctx.font = '40px Arial';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+        ctx.fillText(`${i + 1} / ${lines.length}`, canvas.width / 2, canvas.height - 100);
+        
+        while (Date.now() - startTime < frameDuration) {
+          await new Promise(resolve => setTimeout(resolve, 16));
+        }
       }
-
-      let concat = '';
-      for (let i = 0; i < lines.length; i++) {
-        concat += `file 'frame${i}.png'\nduration 5\n`;
-      }
-      concat += `file 'frame${lines.length - 1}.png'\n`;
-      await ffmpeg.writeFile('concat.txt', new TextEncoder().encode(concat));
-
-      await ffmpeg.exec([
-        '-f', 'concat',
-        '-safe', '0',
-        '-i', 'concat.txt',
-        '-vsync', 'vfr',
-        '-pix_fmt', 'yuv420p',
-        '-c:v', 'libx264',
-        'output.mp4'
-      ]);
-
-      const data = await ffmpeg.readFile('output.mp4');
-      const videoBlob = new Blob([new Uint8Array(data as Uint8Array)], { type: 'video/mp4' });
-      setVideoUrl(URL.createObjectURL(videoBlob));
+      
+      mediaRecorder.stop();
     } catch (e) {
       console.error('Video generation failed:', e);
-      alert('Video generation failed. Check console.');
-    } finally {
+      alert('Video generation failed: ' + (e as Error).message);
       setIsGenerating(false);
     }
   };
@@ -258,12 +296,12 @@ CTA (30–35s): Try it and tag #VoiceClonePodcast.`;
               <div style={{ marginTop: '1.5rem' }}>
                 <h3>✅ Video Ready</h3>
                 <video controls width="100%" style={{ borderRadius: '8px', backgroundColor: '#000' }}>
-                  <source src={videoUrl} type="video/mp4" />
+                  <source src={videoUrl} type="video/webm" />
                 </video>
                 <div style={{ marginTop: '0.8rem' }}>
                   <a
                     href={videoUrl}
-                    download={`${selectedTopic.topic.replace(/\s+/g, '_')}_final.mp4`}
+                    download={`${selectedTopic.topic.replace(/\s+/g, '_')}_final.webm`}
                     style={{
                       display: 'inline-block',
                       padding: '0.5rem 1rem',
@@ -273,7 +311,7 @@ CTA (30–35s): Try it and tag #VoiceClonePodcast.`;
                       borderRadius: '4px'
                     }}
                   >
-                    📥 Download MP4
+                    📥 Download Video
                   </a>
                 </div>
               </div>

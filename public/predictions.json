@@ -1,0 +1,53 @@
+[
+  {
+    "topic": "AI Voice Cloning for Podcasters",
+    "snapshot_time": "2025-11-02T12:00:00Z",
+    "google_trends_slope_7d": 5.4,
+    "tiktok_views_7d": 890000,
+    "youtube_avg_retention_48h": 0.68,
+    "reddit_posts_7d": 42,
+    "creator_collision": 9,
+    "model_prob_60d": 0.93,
+    "fast_gate_passed": true,
+    "calibrated": true,
+    "shap_explanation": [
+      { "feature": "tiktok_views_7d", "contribution": 0.32 },
+      { "feature": "retention_48h", "contribution": 0.28 },
+      { "feature": "creator_collision", "contribution": 0.21 }
+    ]
+  },
+  {
+    "topic": "Micro SaaS with AI Automation",
+    "snapshot_time": "2025-11-03T08:30:00Z",
+    "google_trends_slope_7d": 7.2,
+    "tiktok_views_7d": 1250000,
+    "youtube_avg_retention_48h": 0.72,
+    "reddit_posts_7d": 58,
+    "creator_collision": 12,
+    "model_prob_60d": 0.89,
+    "fast_gate_passed": true,
+    "calibrated": true,
+    "shap_explanation": [
+      { "feature": "google_trends_slope_7d", "contribution": 0.35 },
+      { "feature": "tiktok_views_7d", "contribution": 0.29 },
+      { "feature": "retention_48h", "contribution": 0.19 }
+    ]
+  },
+  {
+    "topic": "No-Code Game Development 2025",
+    "snapshot_time": "2025-11-02T18:15:00Z",
+    "google_trends_slope_7d": 4.8,
+    "tiktok_views_7d": 675000,
+    "youtube_avg_retention_48h": 0.61,
+    "reddit_posts_7d": 35,
+    "creator_collision": 7,
+    "model_prob_60d": 0.81,
+    "fast_gate_passed": true,
+    "calibrated": true,
+    "shap_explanation": [
+      { "feature": "tiktok_views_7d", "contribution": 0.28 },
+      { "feature": "google_trends_slope_7d", "contribution": 0.26 },
+      { "feature": "reddit_posts_7d", "contribution": 0.18 }
+    ]
+  }
+]
