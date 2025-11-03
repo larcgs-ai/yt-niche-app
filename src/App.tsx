@@ -1,12 +1,9 @@
+// src/App.tsx
 import React, { useState, useEffect } from 'react';
-import * as FFmpeg from '@ffmpeg/ffmpeg';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 
-// Only extract createFFmpeg to avoid unused-variable for fetchFile
-const { createFFmpeg } = (FFmpeg as any) || {};
-
-const PREDICTIONS_URL = 'https://drive.google.com/uc?export=download&id=predictions.json';
+const PREDICTIONS_URL = 'https://drive.google.com/uc?export=download&id=YOUR_FILE_ID';
 
 interface Prediction {
   topic: string;
@@ -58,7 +55,6 @@ const App: React.FC = () => {
     loadPredictions();
   }, []);
 
-  // now uses topic in the returned text so the parameter is read
   const generateShortsScript = (topic: string): string => {
     return `Hook (0–5s): Can you clone your voice in 10 seconds? — ${topic}
 Tease (5–10s): I tried AI voice cloning for my podcast about ${topic}.
@@ -81,6 +77,9 @@ CTA (30–35s): Try it and tag #VoiceClonePodcast.`;
     setVideoUrl(null);
 
     try {
+      // dynamic import at runtime to avoid top-level TS export issues
+      const ffmpegModule = await import('@ffmpeg/ffmpeg');
+      const { createFFmpeg } = (ffmpegModule as any) || {};
       const ffmpeg = createFFmpeg ? createFFmpeg({ log: false }) : null;
       if (!ffmpeg) throw new Error('FFmpeg module not available. Confirm @ffmpeg/ffmpeg is installed.');
       await ffmpeg.load();
@@ -244,73 +243,17 @@ CTA (30–35s): Try it and tag #VoiceClonePodcast.`;
             borderRadius: '12px',
             backgroundColor: '#1a1a1a'
           }}>
-           // replace the existing generateVideo function with this
-const generateVideo = async (topic: string) => {
-  if (isGenerating) return;
-  setIsGenerating(true);
-  setVideoUrl(null);
-
-  try {
-    // dynamic import inside the browser runtime
-    const ffmpegModule = await import('@ffmpeg/ffmpeg');
-    const { createFFmpeg } = (ffmpegModule as any) || {};
-    const ffmpeg = createFFmpeg ? createFFmpeg({ log: false }) : null;
-    if (!ffmpeg) throw new Error('FFmpeg module not available. Confirm @ffmpeg/ffmpeg is installed.');
-    await ffmpeg.load();
-
-    const script = generateShortsScript(topic);
-    const lines = script.split('\n').map(l => l.trim()).filter(Boolean);
-
-    for (let i = 0; i < lines.length; i++) {
-      const canvas = document.createElement('canvas');
-      canvas.width = 1080;
-      canvas.height = 1920;
-      const ctx = canvas.getContext('2d')!;
-      ctx.fillStyle = '#0f0f0f';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.font = 'bold 70px Arial';
-      ctx.fillStyle = 'white';
-      ctx.textAlign = 'center';
-      ctx.fillText(lines[i], canvas.width / 2, canvas.height / 2);
-      ctx.font = '50px Arial';
-      ctx.fillText(`${topic}`, canvas.width / 2, canvas.height - 200);
-
-      const blob = await new Promise<Blob>((resolve) => {
-        canvas.toBlob((b) => resolve(b!), 'image/png');
-      });
-      const arrayBuffer = await blob.arrayBuffer();
-      ffmpeg.FS('writeFile', `frame${i}.png`, new Uint8Array(arrayBuffer));
-    }
-
-    let concat = '';
-    for (let i = 0; i < lines.length; i++) {
-      concat += `file 'frame${i}.png'\nduration 5\n`;
-    }
-    concat += `file 'frame${lines.length - 1}.png'`;
-    ffmpeg.FS('writeFile', 'concat.txt', concat);
-
-    await ffmpeg.run(
-      '-f', 'concat',
-      '-safe', '0',
-      '-i', 'concat.txt',
-      '-c:v', 'libx264',
-      '-pix_fmt', 'yuv420p',
-      '-r', '30',
-      '-t', '20',
-      'output.mp4'
-    );
-
-    const data = ffmpeg.FS('readFile', 'output.mp4');
-    const videoBlob = new Blob([data.buffer], { type: 'video/mp4' });
-    setVideoUrl(URL.createObjectURL(videoBlob));
-  } catch (e) {
-    console.error('Video generation failed:', e);
-    alert('Video generation failed. Check console.');
-  } finally {
-    setIsGenerating(false);
-  }
-};
-
+            <h2>Generate Video for "{selectedTopic.topic}"</h2>
+            <button
+              onClick={() => generateVideo(selectedTopic.topic)}
+              disabled={isGenerating}
+              style={{
+                padding: '0.6rem 1.2rem',
+                backgroundColor: isGenerating ? '#555' : '#2196F3',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: isGenerating ? 'not-allowed' : 'pointer'
               }}
             >
               {isGenerating ? '🎬 Rendering Video...' : '🎬 Generate Real Video'}
