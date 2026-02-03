@@ -4,10 +4,14 @@ A real-time dashboard for detecting nascent viral opportunities on YouTube, powe
 
 ## 🚀 Quick Start
 
+**For this repository:**
 ```bash
 npm install
 npm run dev
 ```
+
+**To create a new project (e.g., aisend-voice-dmo):**
+See [QUICK_START.md](./QUICK_START.md) for instructions on creating a new repository from this template.
 
 ## 📦 Deployment
 

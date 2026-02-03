@@ -20,7 +20,9 @@ This guide will help you create a new repository named `aisend-voice-dmo` and de
 
 ## Step 2: Prepare Your Local Project
 
-If you want to use this current project as the base:
+### Option A: Use this repository as a template
+
+If you have access to this repository and want to use it as a starting point:
 
 ```bash
 # Clone this repository to a new directory
@@ -36,13 +38,28 @@ git add .
 git commit -m "Initial commit"
 ```
 
-Or if you're starting fresh:
+### Option B: Use your own existing project
+
+If you already have a Vite/React project:
 
 ```bash
-# Create new directory
-mkdir aisend-voice-dmo
-cd aisend-voice-dmo
+# Navigate to your project directory
+cd your-project-directory
 git init
+git add .
+git commit -m "Initial commit"
+```
+
+### Option C: Create a new Vite project
+
+```bash
+# Create a new Vite + React + TypeScript project
+npm create vite@latest aisend-voice-dmo -- --template react-ts
+cd aisend-voice-dmo
+npm install
+git init
+git add .
+git commit -m "Initial commit"
 ```
 
 ## Step 3: Connect to Your New GitHub Repository

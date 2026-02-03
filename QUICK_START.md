@@ -14,11 +14,26 @@ This guide will help you quickly set up and deploy the `aisend-voice-dmo` reposi
 
 ### 2. Push from Your Machine
 
+#### Option A: Clone this template repository (if you have access)
+
 ```bash
-# If starting with this codebase
+# Clone this repository as a starting point
 git clone https://github.com/larcgs-ai/yt-niche-app.git aisend-voice-dmo
 cd aisend-voice-dmo
 rm -rf .git
+git init
+git add .
+git commit -m "Initial commit"
+git remote add origin https://github.com/YOUR_USERNAME/aisend-voice-dmo.git
+git branch -M main
+git push -u origin main
+```
+
+#### Option B: Start with your own project
+
+```bash
+# Create or navigate to your project directory
+cd your-project-directory
 git init
 git add .
 git commit -m "Initial commit"
