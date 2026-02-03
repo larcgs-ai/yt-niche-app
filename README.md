@@ -1,4 +1,44 @@
-# React + TypeScript + Vite
+# YT Niche App - React + TypeScript + Vite
+
+A real-time dashboard for detecting nascent viral opportunities on YouTube, powered by a signal prediction system.
+
+## 🚀 Quick Start
+
+**For this repository:**
+```bash
+npm install
+npm run dev
+```
+
+**To create a new project (e.g., aisend-voice-dmo):**
+See [QUICK_START.md](./QUICK_START.md) for instructions on creating a new repository from this template.
+
+## 📦 Deployment
+
+This app can be easily deployed to Cloudflare Pages, Azure, or any static hosting provider.
+
+### Deploy to Cloudflare Pages
+
+See [QUICK_START.md](./QUICK_START.md) for a 5-minute setup guide or [CLOUDFLARE_SETUP.md](./CLOUDFLARE_SETUP.md) for detailed instructions.
+
+**Quick deployment:**
+```bash
+npm run build
+npx wrangler pages deploy dist --project-name=your-project-name
+```
+
+### Deploy to Azure
+
+This repository includes Azure App Service deployment configuration in `.github/workflows/main_azurevoice.yml`.
+
+## 📋 Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build locally
+- `npm run lint` - Run ESLint
+
+## 🛠️ Tech Stack
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
