@@ -32,7 +32,7 @@ const App: React.FC = () => {
         if (!res.ok) throw new Error('Network response not ok');
         const data = await res.json();
         setPredictions(Array.isArray(data) ? data : [data]);
-      } catch (e) {
+      } catch {
         setPredictions([{
           topic: "AI Voice Cloning for Podcasters",
           snapshot_time: "2025-11-02T12:00:00Z",
